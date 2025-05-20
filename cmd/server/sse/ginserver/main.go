@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kugouming/mcpservers/tools/httprequest"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cast"
@@ -277,8 +278,10 @@ func HttpRequest(ctx context.Context, method, url string, headers map[string]str
 
 func main() {
 	s := NewMCPServer()
-	s.WithHttpRequestTool()
-	s.WithCalculatorTool()
+	// s.WithHttpRequestTool()
+	// s.WithCalculatorTool()
+
+	httprequest.RegisterTool(s.server)
 
 	// Start the SSE server with GIN
 	r := gin.Default()
