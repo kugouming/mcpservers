@@ -1,0 +1,22 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CopyConfDev",
+            "type": "shell",
+            "command": "rm -rf ~/conf && cp -r ${workspaceFolder}/conf/dev ~/conf && echo 'done'"
+        },
+        {
+            "label": "CopyConfRelease",
+            "type": "shell",
+            "command": [
+                "rm -rf ~/conf;",
+                "cp -r ${workspaceFolder}/conf/release ~/conf;",
+                "sed -i '' 's/\\/home\\/logs/\\./g' ~/conf/conf.ini;",
+                "echo 'done';",
+            ]
+        }
+    ]
+}
