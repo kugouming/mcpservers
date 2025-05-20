@@ -5,13 +5,13 @@ LDFLAGS=-w -s
 
 # 目录相关变量
 WORK_DIR=$(shell pwd)
-CMDS_DIR=cmds
-OUTPUT_DIR=output/cmds
-SSE_DIR=server/sse
+CLIENT_DIR=cmd/client
+OUTPUT_DIR=output/client
+SSE_DIR=cmd/server/sse
 SSE_OUTPUT_DIR=output/sse
 
-# 获取所有 cmds 和 sse 子目录
-CMDS := $(shell find $(CMDS_DIR) -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+# 获取所有 client 和 sse 子目录
+CMDS := $(shell find $(CLIENT_DIR) -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
 SSE_CMDS := $(shell find $(SSE_DIR) -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
 SSE_TARGETS := $(addprefix sse_,$(SSE_CMDS))
 
@@ -28,14 +28,14 @@ $(OUTPUT_DIR) $(SSE_OUTPUT_DIR):
 .PHONY: $(CMDS)
 $(CMDS): $(OUTPUT_DIR)
 	@echo "Building $@..."
-	@cd $(CMDS_DIR)/$@ && $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o ../../$(OUTPUT_DIR)/$@
+	@cd $(CLIENT_DIR)/$@ && $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o ../../../$(OUTPUT_DIR)/$@
 
 # 为每个 sse cmd 创建编译目标
 .PHONY: $(SSE_TARGETS)
 $(SSE_TARGETS): $(SSE_OUTPUT_DIR)
 	@cmd=$$(echo $@ | sed 's/^sse_//'); \
 	echo "Building SSE $$cmd..."; \
-	cd $(SSE_DIR)/$$cmd && $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o ../../../$(SSE_OUTPUT_DIR)/$$cmd
+	cd $(SSE_DIR)/$$cmd && $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o ../../../../$(SSE_OUTPUT_DIR)/$$cmd
 
 # 输出所有命令
 .PHONY: list
