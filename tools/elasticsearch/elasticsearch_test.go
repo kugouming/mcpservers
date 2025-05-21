@@ -1,16 +1,41 @@
 package elasticsearch
 
 import (
+	"os"
 	"testing"
 
+	es7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/assert"
 )
 
-var client, _ = NewESClient(&Config{
+var config = &Config{
 	URL:      "http://localhost:9200",
 	Username: "elastic",
 	Password: "fyOGTrjf",
-})
+}
+
+var client, _ = NewESClient(config)
+
+func TestGetVersion(t *testing.T) {
+	cfg7 := es7.Config{
+		Addresses: []string{config.URL},
+	}
+	if config.APIKey != "" {
+		cfg7.APIKey = config.APIKey
+	} else if config.Username != "" && config.Password != "" {
+		cfg7.Username = config.Username
+		cfg7.Password = config.Password
+	}
+
+	if config.CACert != "" {
+		caCert, _ := os.ReadFile(config.CACert)
+		cfg7.CACert = caCert
+	}
+
+	client7, _ := es7.NewClient(cfg7)
+	version := GetVersion(client7)
+	assert.Equal(t, 9, version)
+}
 
 func TestListIndices(t *testing.T) {
 	indices, err := client.ListIndices(".internal.alerts-transform.health.alerts-default-000001")

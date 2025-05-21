@@ -1,5 +1,13 @@
 package elasticsearch
 
+// IClient 定义 Elasticsearch 客户端接口
+type IClient interface {
+	ListIndices(pattern string) ([]map[string]any, error)
+	GetMapping(index string) (map[string]any, error)
+	Search(index string, query map[string]any) (map[string]any, error)
+	GetShards(index string) ([]map[string]any, error)
+}
+
 // Config 定义 Elasticsearch 配置
 type Config struct {
 	URL      string `json:"url"`

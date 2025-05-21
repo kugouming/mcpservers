@@ -3,41 +3,34 @@ package elasticsearch
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 
-	es "github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	es7 "github.com/elastic/go-elasticsearch/v7"
+	es8 "github.com/elastic/go-elasticsearch/v8"
+	"github.com/spf13/cast"
 )
 
-// IESClient 定义 Elasticsearch 客户端接口
-type IESClient interface {
-	ListIndices(pattern string) ([]map[string]any, error)
-	GetMapping(index string) (map[string]any, error)
-	Search(index string, query map[string]any) (map[string]any, error)
-	GetShards(index string) ([]map[string]any, error)
-}
-
-// esClient 实现 ESClient 接口的真实客户端
-type esClient struct {
-	client *es.Client
-}
-
-func NewESClient(config *Config) (IESClient, error) {
+func NewESClient(config *Config) (IClient, error) {
 	if config == nil || config.URL == "" {
 		return nil, errors.New("配置为空")
 	}
 
-	cfg := es.Config{
+	cfg7 := es7.Config{
+		Addresses: []string{config.URL},
+	}
+	cfg8 := es8.Config{
 		Addresses: []string{config.URL},
 	}
 
 	if config.APIKey != "" {
-		cfg.APIKey = config.APIKey
+		cfg7.APIKey = config.APIKey
+		cfg8.APIKey = config.APIKey
 	} else if config.Username != "" && config.Password != "" {
-		cfg.Username = config.Username
-		cfg.Password = config.Password
+		cfg7.Username = config.Username
+		cfg7.Password = config.Password
+		cfg8.Username = config.Username
+		cfg8.Password = config.Password
 	}
 
 	if config.CACert != "" {
@@ -45,138 +38,42 @@ func NewESClient(config *Config) (IESClient, error) {
 		if err != nil {
 			return nil, err
 		}
-		cfg.CACert = caCert
+		cfg7.CACert = caCert
+		cfg8.CACert = caCert
 	}
 
-	client, err := es.NewClient(cfg)
+	client7, err := es7.NewClient(cfg7)
 	if err != nil {
 		return nil, err
 	}
-	return &esClient{client: client}, nil
+
+	version := GetVersion(client7)
+	if version < 8 {
+		return &es7Client{client: client7}, nil
+	}
+
+	client8, err := es8.NewClient(cfg8)
+	if err != nil {
+		return nil, err
+	}
+	return &es8Client{client: client8}, nil
 }
 
-func (c *esClient) ListIndices(pattern string) ([]map[string]any, error) {
-	res, err := c.client.Cat.Indices(
-		c.client.Cat.Indices.WithIndex(pattern),
-		c.client.Cat.Indices.WithFormat("json"),
-	)
+func GetVersion(client *es7.Client) int {
+	info, err := client.Info()
 	if err != nil {
-		return nil, fmt.Errorf("获取索引列表失败: %w", err)
+		return 7
 	}
-	defer res.Body.Close()
-
-	var indices []CatIndicesRow
-	if err := json.NewDecoder(res.Body).Decode(&indices); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
-	}
-
-	result := make([]map[string]any, 0, len(indices))
-	for _, index := range indices {
-		result = append(result, map[string]any{
-			"index":     index.Index,
-			"health":    index.Health,
-			"status":    index.Status,
-			"docsCount": index.DocsCount,
-			"storeSize": index.StoreSize,
-		})
-	}
-
-	return result, nil
-}
-
-func (c *esClient) GetMapping(index string) (map[string]any, error) {
-	res, err := c.client.Indices.GetMapping(
-		c.client.Indices.GetMapping.WithIndex(index),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("获取映射失败: %w", err)
-	}
-	defer res.Body.Close()
+	defer info.Body.Close()
 
 	var response map[string]any
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
+	if err := json.NewDecoder(info.Body).Decode(&response); err != nil {
+		return 7
 	}
 
-	item := response[index].(map[string]any)
-	return item["mappings"].(map[string]any), nil
-}
+	version := response["version"].(map[string]any)
+	number := version["number"].(string)
+	parts := strings.Split(number, ".")
 
-func (c *esClient) Search(index string, query map[string]any) (map[string]any, error) {
-	// 获取映射以识别文本字段
-	mappingRes, err := c.GetMapping(index)
-	if err != nil {
-		return nil, fmt.Errorf("获取映射失败: %w", err)
-	}
-
-	// 构建搜索请求
-	query["highlight"] = map[string]any{
-		"fields":    map[string]any{},
-		"pre_tags":  []string{"<em>"},
-		"post_tags": []string{"</em>"},
-	}
-
-	// 添加文本字段到高亮
-	if props, ok := mappingRes["properties"].(map[string]any); ok {
-		for field, fieldData := range props {
-			if fieldMap, ok := fieldData.(map[string]any); ok {
-				if fieldType, ok := fieldMap["type"].(string); ok && fieldType == "text" {
-					query["highlight"].(map[string]any)["fields"].(map[string]any)[field] = map[string]any{}
-				}
-			}
-		}
-	}
-
-	// 执行搜索
-	queryJSON, err := json.Marshal(query)
-	if err != nil {
-		return nil, fmt.Errorf("序列化查询失败: %w", err)
-	}
-
-	res, err := c.client.Search(
-		c.client.Search.WithIndex(index),
-		c.client.Search.WithBody(strings.NewReader(string(queryJSON))),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("搜索失败: %w", err)
-	}
-	defer res.Body.Close()
-
-	var searchResponse map[string]any
-	if err := json.NewDecoder(res.Body).Decode(&searchResponse); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
-	}
-
-	return searchResponse["hits"].(map[string]any), nil
-}
-
-func (c *esClient) GetShards(index string) ([]map[string]any, error) {
-	var res *esapi.Response
-	var err error
-
-	if index != "" {
-		res, err = c.client.Cat.Shards(
-			c.client.Cat.Shards.WithIndex(index),
-			c.client.Cat.Shards.WithFormat("json"),
-		)
-	} else {
-		res, err = c.client.Cat.Shards(
-			c.client.Cat.Shards.WithFormat("json"),
-		)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("获取分片信息失败: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, fmt.Errorf("elasticsearch 返回错误: %s", res.String())
-	}
-
-	var shards []map[string]any
-	if err := json.NewDecoder(res.Body).Decode(&shards); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
-	}
-
-	return shards, nil
+	return cast.ToInt(parts[0])
 }
