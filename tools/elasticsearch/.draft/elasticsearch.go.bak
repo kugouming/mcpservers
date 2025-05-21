@@ -1,0 +1,165 @@
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+
+	"github.com/joho/godotenv"
+	"github.com/kugouming/mcpservers/mcp-go"
+	"github.com/olivere/elastic/v7"
+)
+
+const (
+	serverName = "elasticsearch-mcp-server"
+)
+
+var (
+	esClient  *elastic.Client
+	mcpServer *mcp.Server
+)
+
+func init() {
+	// 加载环境变量
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found")
+	}
+
+	// 初始化 Elasticsearch 客户端
+	url := os.Getenv("ELASTIC_HOST")
+	username := os.Getenv("ELASTIC_USERNAME")
+	password := os.Getenv("ELASTIC_PASSWORD")
+
+	var err error
+	if username != "" && password != "" {
+		esClient, err = elastic.NewClient(
+			elastic.SetURL(url),
+			elastic.SetBasicAuth(username, password),
+			elastic.SetSniff(false),
+		)
+	} else {
+		esClient, err = elastic.NewClient(
+			elastic.SetURL(url),
+			elastic.SetSniff(false),
+		)
+	}
+
+	if err != nil {
+		log.Fatalf("Error creating Elasticsearch client: %v", err)
+	}
+
+	// 初始化 MCP 服务器
+	mcpServer = mcp.NewServer(serverName)
+}
+
+// ListIndices 列出所有 Elasticsearch 索引
+func ListIndices() (map[string]interface{}, error) {
+	indices, err := esClient.CatIndices().Do()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]interface{})
+	for _, index := range indices {
+		result[index.Index] = map[string]interface{}{
+			"health":   index.Health,
+			"status":   index.Status,
+			"docs":     index.DocsCount,
+			"store":    index.StoreSize,
+			"pri":      index.Pri,
+			"rep":      index.Rep,
+			"priStore": index.PriStoreSize,
+		}
+	}
+	return result, nil
+}
+
+// GetIndex 获取特定索引的详细信息
+func GetIndex(index string) (map[string]interface{}, error) {
+	info, err := esClient.IndexGet(index).Do()
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
+// WriteDocuments 批量写入文档到 Elasticsearch
+func WriteDocuments(index string, documents []map[string]interface{}) (map[string]interface{}, error) {
+	bulk := esClient.Bulk()
+
+	for _, doc := range documents {
+		req := elastic.NewBulkIndexRequest().Index(index).Doc(doc)
+		bulk.Add(req)
+	}
+
+	res, err := bulk.Refresh("true").Do()
+	if err != nil {
+		return nil, fmt.Errorf("批量写入失败: %w", err)
+	}
+
+	return map[string]interface{}{
+		"took":   res.Took,
+		"errors": res.Errors,
+		"items":  res.Items,
+	}, nil
+}
+
+// GetLogs 获取 Elasticsearch 容器日志
+func GetLogs() (string, error) {
+	cmd := exec.Command("docker", "logs", "elasticsearch-mcp-server-example-es01-1")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(output), nil
+}
+
+// GetDockerCompose 获取 docker-compose.yaml 文件内容
+func GetDockerCompose() (string, error) {
+	content, err := ioutil.ReadFile("docker-compose.yaml")
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
+}
+
+// GetMovies 获取 movies.csv 文件内容
+func GetMovies() (string, error) {
+	content, err := ioutil.ReadFile("movies.csv")
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
+}
+
+// ESPrompt 创建索引分析提示
+func ESPrompt(index string) string {
+	return fmt.Sprintf(`你是一位资深的 Elasticsearch 专家，精通搜索引擎架构、数据索引策略和性能优化。请分析索引 '%s'，考虑以下方面：
+- 索引设置和映射
+- 搜索优化机会
+- 数据建模改进
+- 潜在的扩展考虑`, index)
+}
+
+func main() {
+	// 注册工具函数
+	mcpServer.RegisterTool("list_indices", ListIndices)
+	mcpServer.RegisterTool("get_index", GetIndex)
+	mcpServer.RegisterTool("write_documents", WriteDocuments)
+
+	// 注册资源
+	mcpServer.RegisterResource("es://logs", GetLogs)
+	mcpServer.RegisterResource("file://docker-compose.yaml", GetDockerCompose)
+	mcpServer.RegisterResource("file://movies.csv", GetMovies)
+
+	// 注册提示模板
+	mcpServer.RegisterPrompt("es_prompt", ESPrompt)
+
+	// 启动服务器
+	log.Printf("Starting %s...", serverName)
+	if err := mcpServer.Run(); err != nil {
+		log.Fatalf("Error running server: %v", err)
+	}
+}
