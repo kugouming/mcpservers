@@ -59,7 +59,8 @@ config:
 	@for cmd in $(CMDS); do \
 		echo "    \"$$cmd\": {"; \
 		echo "      \"command\": \"$(WORK_DIR)/$(OUTPUT_DIR)/$$cmd\","; \
-		echo "      \"args\": []"; \
+		echo "      \"args\": [],"; \
+		echo "      \"env\": {}"; \
 		if [ "$$cmd" != "$$(echo $(CMDS) | rev | cut -d' ' -f1 | rev)" ] || [ -n "$(SSE_CMDS)" ]; then \
 			echo "    },"; \
 		else \

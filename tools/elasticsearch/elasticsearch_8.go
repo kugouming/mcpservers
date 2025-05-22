@@ -3,6 +3,7 @@ package elasticsearch
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	es8 "github.com/elastic/go-elasticsearch/v8"
@@ -20,13 +21,18 @@ func (c *es8Client) ListIndices(pattern string) ([]map[string]any, error) {
 		c.client.Cat.Indices.WithFormat("json"),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("获取索引列表失败: %w", err)
+		return nil, fmt.Errorf("get indices failed: %w", err)
 	}
 	defer res.Body.Close()
 
+	if res.IsError() {
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("%v %v", res.StatusCode, string(body))
+	}
+
 	var indices []CatIndicesRow
 	if err := json.NewDecoder(res.Body).Decode(&indices); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
+		return nil, fmt.Errorf("parse response failed: %w", err)
 	}
 
 	result := make([]map[string]any, 0, len(indices))
@@ -48,13 +54,18 @@ func (c *es8Client) GetMapping(index string) (map[string]any, error) {
 		c.client.Indices.GetMapping.WithIndex(index),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("获取映射失败: %w", err)
+		return nil, fmt.Errorf("get mapping failed: %w", err)
 	}
 	defer res.Body.Close()
 
+	if res.IsError() {
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("%v %v", res.StatusCode, string(body))
+	}
+
 	var response map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
+		return nil, fmt.Errorf("parse response failed: %w", err)
 	}
 
 	item := response[index].(map[string]any)
@@ -65,7 +76,7 @@ func (c *es8Client) Search(index string, query map[string]any) (map[string]any, 
 	// 获取映射以识别文本字段
 	mappingRes, err := c.GetMapping(index)
 	if err != nil {
-		return nil, fmt.Errorf("获取映射失败: %w", err)
+		return nil, fmt.Errorf("get mapping failed: %w", err)
 	}
 
 	// 构建搜索请求
@@ -89,7 +100,7 @@ func (c *es8Client) Search(index string, query map[string]any) (map[string]any, 
 	// 执行搜索
 	queryJSON, err := json.Marshal(query)
 	if err != nil {
-		return nil, fmt.Errorf("序列化查询失败: %w", err)
+		return nil, fmt.Errorf("params to json failed: %w", err)
 	}
 
 	res, err := c.client.Search(
@@ -97,13 +108,18 @@ func (c *es8Client) Search(index string, query map[string]any) (map[string]any, 
 		c.client.Search.WithBody(strings.NewReader(string(queryJSON))),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("搜索失败: %w", err)
+		return nil, fmt.Errorf("search run failed: %w", err)
 	}
 	defer res.Body.Close()
 
 	var searchResponse map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&searchResponse); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
+		return nil, fmt.Errorf("search parse response failed: %w", err)
+	}
+
+	if res.IsError() {
+		err := searchResponse["error"].(map[string]any)
+		return nil, fmt.Errorf("%v %v", err["type"], err["reason"])
 	}
 
 	return searchResponse["hits"].(map[string]any), nil
@@ -124,17 +140,18 @@ func (c *es8Client) GetShards(index string) ([]map[string]any, error) {
 		)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("获取分片信息失败: %w", err)
+		return nil, fmt.Errorf("get shards failed: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("elasticsearch 返回错误: %s", res.String())
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("%v %v", res.StatusCode, string(body))
 	}
 
 	var shards []map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&shards); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
+		return nil, fmt.Errorf("parse response failed: %w", err)
 	}
 
 	return shards, nil

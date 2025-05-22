@@ -10,11 +10,12 @@ type IClient interface {
 
 // Config 定义 Elasticsearch 配置
 type Config struct {
-	URL      string `json:"url"`
-	APIKey   string `json:"apiKey,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-	CACert   string `json:"caCert,omitempty"`
+	URL       string `json:"url"`
+	APIKey    string `json:"apiKey,omitempty"`    // API Key
+	Username  string `json:"username,omitempty"`  // 用户名
+	Password  string `json:"password,omitempty"`  // 密码
+	AuthToken string `json:"authToken,omitempty"` // 自定义 Authorization 认证
+	CACert    string `json:"caCert,omitempty"`    // 自定义 CA 证书
 }
 
 type CatIndicesRow struct {

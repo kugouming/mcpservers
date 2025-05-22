@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kugouming/mcpservers/tools/elasticsearch"
 	"github.com/kugouming/mcpservers/tools/httprequest"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -282,6 +283,7 @@ func main() {
 	// s.WithCalculatorTool()
 
 	httprequest.RegisterTool(s.server)
+	elasticsearch.RegisterTool(s.server)
 
 	// Start the SSE server with GIN
 	r := gin.Default()
@@ -302,7 +304,7 @@ func main() {
 	})
 
 	// 启动 GIN 服务器
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(":9080"); err != nil {
 		log.Fatalf("Failed to start GIN server: %v", err)
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/kugouming/mcpservers/tools/elasticsearch"
 	"github.com/kugouming/mcpservers/tools/httprequest"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -16,9 +17,9 @@ func NewMCPServer() *MCPServer {
 	s := server.NewMCPServer(
 		"Example Demo",
 		"1.0.0",
-		server.WithToolCapabilities(true), // 启用工具相关的服务器功能
-		server.WithResourceCapabilities(true, true), // 启用资源相关的服务器功能
+		server.WithToolCapabilities(true),           // 启用工具相关的服务器功能
 		server.WithPromptCapabilities(true),         // 启用提示相关的服务器功能
+		server.WithResourceCapabilities(true, true), // 启用资源相关的服务器功能
 		server.WithRecovery(),                       // 启用恢复机制，在发生错误时能够捕获异常
 	)
 
@@ -29,6 +30,7 @@ func NewMCPServer() *MCPServer {
 
 func (s *MCPServer) WithTools() *MCPServer {
 	httprequest.RegisterTool(s.server)
+	elasticsearch.RegisterTool(s.server)
 
 	return s
 }

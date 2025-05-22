@@ -1,6 +1,7 @@
 package elasticsearch
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -14,7 +15,13 @@ var config = &Config{
 	Password: "fyOGTrjf",
 }
 
-var client, _ = NewESClient(config)
+func init() {
+	var err error
+	client, err = NewESClient(config)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create Elasticsearch client: %v", err))
+	}
+}
 
 func TestGetVersion(t *testing.T) {
 	cfg7 := es7.Config{

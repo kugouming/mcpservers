@@ -3,6 +3,7 @@ package elasticsearch
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"strings"
 
@@ -23,7 +24,13 @@ func NewESClient(config *Config) (IClient, error) {
 		Addresses: []string{config.URL},
 	}
 
-	if config.APIKey != "" {
+	if config.AuthToken != "" {
+		// 自定义 Authorization 认证
+		var header = make(http.Header, 0)
+		header.Set("Authorization", "Basic "+config.AuthToken)
+		cfg7.Header = header
+		cfg8.Header = header
+	} else if config.APIKey != "" {
 		cfg7.APIKey = config.APIKey
 		cfg8.APIKey = config.APIKey
 	} else if config.Username != "" && config.Password != "" {
