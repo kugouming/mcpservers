@@ -54,7 +54,7 @@ func ListIndicesTool(s *server.MCPServer) {
 			return mcp.NewToolResultErrorFromErr("list_indices tool failed", err), nil
 		}
 
-		return mcp.NewToolResultText(fmt.Sprintf("Found %d indices \nResponse: \n%s", len(indices), mapToText(indices))), nil
+		return mcp.NewToolResultText(fmt.Sprintf("Found %d indices \n\nResult: \n%s", len(indices), mapToText(indices))), nil
 	}
 
 	s.AddTool(tool, handler)
@@ -122,12 +122,12 @@ func SearchTool(s *server.MCPServer) {
 
 		hitsArray := hits["hits"].([]any)
 
-		from := 0
+		from := 1
 		if fromVal, ok := query["from"].(float64); ok {
 			from = int(fromVal)
 		}
 
-		return mcp.NewToolResultText(fmt.Sprintf("Total results: %.0f, showing %d from position %d \nResponse: \n%s", total, len(hitsArray), from, mapToText(hitsArray))), nil
+		return mcp.NewToolResultText(fmt.Sprintf("Total results: %.0f, showing %d from position %d \n\nResult: \n%s", total, len(hitsArray), from, mapToText(hitsArray))), nil
 	}
 	s.AddTool(tool, handler)
 }
@@ -149,7 +149,7 @@ func GetShardsTool(s *server.MCPServer) {
 			return mcp.NewToolResultErrorFromErr("get_shards tool failed", err), nil
 		}
 
-		return mcp.NewToolResultText(fmt.Sprintf("Found %d shards \nResponse: \n%s", len(shards), mapToText(shards))), nil
+		return mcp.NewToolResultText(fmt.Sprintf("Found %d shards \n\nResult: \n%s", len(shards), mapToText(shards))), nil
 	}
 	s.AddTool(tool, handler)
 }
