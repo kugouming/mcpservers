@@ -68,8 +68,7 @@ func (c *es8Client) GetMapping(index string) (map[string]any, error) {
 		return nil, fmt.Errorf("parse response failed: %w", err)
 	}
 
-	item := response[index].(map[string]any)
-	return item["mappings"].(map[string]any), nil
+	return response, nil
 }
 
 func (c *es8Client) Search(index string, query map[string]any) (map[string]any, error) {
