@@ -5,7 +5,6 @@ import (
 
 	"github.com/kugouming/mcpservers/tools/elasticsearch"
 	"github.com/kugouming/mcpservers/tools/httprequest"
-	"github.com/kugouming/mcpservers/tools/think"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -16,7 +15,7 @@ type MCPServer struct {
 func NewMCPServer() *MCPServer {
 	// 创建一个MCP服务器
 	s := server.NewMCPServer(
-		"Example Demo",
+		"Elasticsearch MCP Server",
 		"1.0.0",
 		server.WithToolCapabilities(true),           // 启用工具相关的服务器功能
 		server.WithPromptCapabilities(true),         // 启用提示相关的服务器功能
@@ -32,7 +31,6 @@ func NewMCPServer() *MCPServer {
 func (s *MCPServer) WithTools() *MCPServer {
 	httprequest.RegisterTool(s.server)
 	elasticsearch.RegisterTool(s.server)
-	think.RegisterTool(s.server)
 
 	return s
 }
