@@ -57,10 +57,10 @@ var thinkPlanTool = mcp.NewTool("think_and_plan",
 // thinkPlanHandler 处理思考和规划请求
 func thinkPlanHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	// 获取参数
-	thought := cast.ToString(request.Params.Arguments["thought"])
-	plan := cast.ToString(request.Params.Arguments["plan"])
-	action := cast.ToString(request.Params.Arguments["action"])
-	thoughtNumber := cast.ToString(request.Params.Arguments["thoughtNumber"])
+	thought := cast.ToString(request.GetArguments()["thought"])
+	plan := cast.ToString(request.GetArguments()["plan"])
+	action := cast.ToString(request.GetArguments()["action"])
+	thoughtNumber := cast.ToString(request.GetArguments()["thoughtNumber"])
 
 	// 验证必需参数
 	if len(thought) == 0 {

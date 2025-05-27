@@ -30,7 +30,7 @@ func main() {
 
 	// 添加工具处理函数
 	s.AddTool(promptTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		scenario := request.Params.Arguments["scenario"].(string)
+		scenario := request.GetArguments()["scenario"].(string)
 
 		var promptText string
 		switch scenario {

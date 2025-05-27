@@ -86,9 +86,9 @@ func TestThinkPlanHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := mcp.CallToolRequest{
 				Params: struct {
-					Name      string         `json:"name"`
-					Arguments map[string]any `json:"arguments,omitempty"`
-					Meta      *mcp.Meta      `json:"_meta,omitempty"`
+					Name      string    `json:"name"`
+					Arguments any       `json:"arguments,omitempty"`
+					Meta      *mcp.Meta `json:"_meta,omitempty"`
 				}{
 					Name:      "think_and_plan",
 					Arguments: tt.arguments,
@@ -134,9 +134,9 @@ func TestThinkPlanMemoryFunctions(t *testing.T) {
 	// 添加一些测试数据
 	request1 := mcp.CallToolRequest{
 		Params: struct {
-			Name      string         `json:"name"`
-			Arguments map[string]any `json:"arguments,omitempty"`
-			Meta      *mcp.Meta      `json:"_meta,omitempty"`
+			Name      string    `json:"name"`
+			Arguments any       `json:"arguments,omitempty"`
+			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name: "think_and_plan",
 			Arguments: map[string]interface{}{
@@ -150,9 +150,9 @@ func TestThinkPlanMemoryFunctions(t *testing.T) {
 
 	request2 := mcp.CallToolRequest{
 		Params: struct {
-			Name      string         `json:"name"`
-			Arguments map[string]any `json:"arguments,omitempty"`
-			Meta      *mcp.Meta      `json:"_meta,omitempty"`
+			Name      string    `json:"name"`
+			Arguments any       `json:"arguments,omitempty"`
+			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name: "think_and_plan",
 			Arguments: map[string]interface{}{
@@ -226,9 +226,9 @@ func BenchmarkThinkPlanHandler(b *testing.B) {
 
 	request := mcp.CallToolRequest{
 		Params: struct {
-			Name      string         `json:"name"`
-			Arguments map[string]any `json:"arguments,omitempty"`
-			Meta      *mcp.Meta      `json:"_meta,omitempty"`
+			Name      string    `json:"name"`
+			Arguments any       `json:"arguments,omitempty"`
+			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name: "think_and_plan",
 			Arguments: map[string]interface{}{
@@ -259,9 +259,9 @@ func TestConcurrentAccess(t *testing.T) {
 		go func(id int) {
 			request := mcp.CallToolRequest{
 				Params: struct {
-					Name      string         `json:"name"`
-					Arguments map[string]any `json:"arguments,omitempty"`
-					Meta      *mcp.Meta      `json:"_meta,omitempty"`
+					Name      string    `json:"name"`
+					Arguments any       `json:"arguments,omitempty"`
+					Meta      *mcp.Meta `json:"_meta,omitempty"`
 				}{
 					Name: "think_and_plan",
 					Arguments: map[string]interface{}{

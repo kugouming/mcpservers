@@ -6,7 +6,7 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/gin-gonic/gin v1.10.0
-	github.com/mark3labs/mcp-go v0.28.0
+	github.com/mark3labs/mcp-go v0.30.0
 	github.com/spf13/cast v1.7.1
 	github.com/stretchr/testify v1.9.0
 )

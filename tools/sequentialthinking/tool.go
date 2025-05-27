@@ -105,15 +105,15 @@ var sequentialThinkingTool = mcp.NewTool("sequentialthinking",
 func toolHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	// 解析请求参数并转换为ThoughtData结构体
 	thoughtData := ThoughtData{
-		Thought:           cast.ToString(req.Params.Arguments["thought"]),
-		ThoughtNumber:     cast.ToInt(req.Params.Arguments["thoughtNumber"]),
-		TotalThoughts:     cast.ToInt(req.Params.Arguments["totalThoughts"]),
-		NextThoughtNeeded: cast.ToBool(req.Params.Arguments["nextThoughtNeeded"]),
-		IsRevision:        cast.ToBool(req.Params.Arguments["isRevision"]),
-		RevisesThought:    cast.ToInt(req.Params.Arguments["revisesThought"]),
-		BranchFromThought: cast.ToInt(req.Params.Arguments["branchFromThought"]),
-		BranchID:          cast.ToString(req.Params.Arguments["branchId"]),
-		NeedsMoreThoughts: cast.ToBool(req.Params.Arguments["needsMoreThoughts"]),
+		Thought:           cast.ToString(req.GetArguments()["thought"]),
+		ThoughtNumber:     cast.ToInt(req.GetArguments()["thoughtNumber"]),
+		TotalThoughts:     cast.ToInt(req.GetArguments()["totalThoughts"]),
+		NextThoughtNeeded: cast.ToBool(req.GetArguments()["nextThoughtNeeded"]),
+		IsRevision:        cast.ToBool(req.GetArguments()["isRevision"]),
+		RevisesThought:    cast.ToInt(req.GetArguments()["revisesThought"]),
+		BranchFromThought: cast.ToInt(req.GetArguments()["branchFromThought"]),
+		BranchID:          cast.ToString(req.GetArguments()["branchId"]),
+		NeedsMoreThoughts: cast.ToBool(req.GetArguments()["needsMoreThoughts"]),
 	}
 
 	// 处理思考步骤

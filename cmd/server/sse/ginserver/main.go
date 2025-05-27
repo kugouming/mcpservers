@@ -149,9 +149,9 @@ func (s *MCPServer) WithCalculatorTool() *MCPServer {
 
 	// 计算器处理程序
 	calculatorHandler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		op := cast.ToString(request.Params.Arguments["operation"])
-		x := cast.ToFloat64(request.Params.Arguments["x"])
-		y := cast.ToFloat64(request.Params.Arguments["y"])
+		op := cast.ToString(request.GetArguments()["operation"])
+		x := cast.ToFloat64(request.GetArguments()["x"])
+		y := cast.ToFloat64(request.GetArguments()["y"])
 
 		var result float64
 		switch op {
@@ -199,18 +199,18 @@ func (s *MCPServer) WithHttpRequestTool() *MCPServer {
 	)
 
 	httpHandler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		method := cast.ToString(request.Params.Arguments["method"])
-		url := cast.ToString(request.Params.Arguments["url"])
+		method := cast.ToString(request.GetArguments()["method"])
+		url := cast.ToString(request.GetArguments()["url"])
 
-		log.Printf("request: [%T: %v]\n", request.Params.Arguments["headers"], request.Params.Arguments["headers"])
+		log.Printf("request: [%T: %v]\n", request.GetArguments()["headers"], request.GetArguments()["headers"])
 		// 尝试解析headers参数
 		// headers := make(map[string]interface{})
-		// if h, ok := request.Params.Arguments["headers"].(map[string]interface{}); ok {
+		// if h, ok := request.GetArguments()["headers"].(map[string]interface{}); ok {
 		// 	headers = h
 		// }
 		// 尝试解析headers参数
 		headers := make(map[string]string)
-		headersStr := cast.ToString(request.Params.Arguments["headers"])
+		headersStr := cast.ToString(request.GetArguments()["headers"])
 		if headersStr != "" {
 			// 这里可以添加更复杂的header解析逻辑
 			// 简单处理：假设格式为 "Key1: Value1\nKey2: Value2"
@@ -229,7 +229,7 @@ func (s *MCPServer) WithHttpRequestTool() *MCPServer {
 
 		// 尝试解析body参数
 		body := ""
-		if b, ok := request.Params.Arguments["body"].(string); ok {
+		if b, ok := request.GetArguments()["body"].(string); ok {
 			body = b
 		}
 

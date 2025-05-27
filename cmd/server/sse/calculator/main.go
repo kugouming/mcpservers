@@ -52,9 +52,9 @@ func (s *MCPServer) RegisterCalculatorTool() *MCPServer {
 
 	// 计算器处理程序
 	calculatorHandler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		op := cast.ToString(request.Params.Arguments["operation"])
-		x := cast.ToFloat64(request.Params.Arguments["x"])
-		y := cast.ToFloat64(request.Params.Arguments["y"])
+		op := cast.ToString(request.GetArguments()["operation"])
+		x := cast.ToFloat64(request.GetArguments()["x"])
+		y := cast.ToFloat64(request.GetArguments()["y"])
 
 		var result float64
 		switch op {

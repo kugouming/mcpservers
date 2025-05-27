@@ -99,12 +99,12 @@ Content-Type: application/json
 )
 
 func httpHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	method := cast.ToString(request.Params.Arguments["method"])
-	url := cast.ToString(request.Params.Arguments["url"])
+	method := cast.ToString(request.GetArguments()["method"])
+	url := cast.ToString(request.GetArguments()["url"])
 
 	// 尝试解析headers参数
 	headers := make(map[string]string)
-	headersStr := cast.ToString(request.Params.Arguments["headers"])
+	headersStr := cast.ToString(request.GetArguments()["headers"])
 	if headersStr != "" {
 		// 这里可以添加更复杂的header解析逻辑
 		// 简单处理：假设格式为 "Key1: Value1\nKey2: Value2"
@@ -123,7 +123,7 @@ func httpHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 
 	// 尝试解析body参数
 	body := ""
-	if b, ok := request.Params.Arguments["body"].(string); ok {
+	if b, ok := request.GetArguments()["body"].(string); ok {
 		body = strings.ReplaceAll(b, "\"\"", "\"")
 	}
 

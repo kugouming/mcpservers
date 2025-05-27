@@ -25,7 +25,7 @@ var thinkTool = mcp.NewTool("think",
 
 func thinkHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	// 使用 RequireString 方法获取必需的 thought 参数
-	thought := cast.ToString(request.Params.Arguments["thought"])
+	thought := cast.ToString(request.GetArguments()["thought"])
 
 	if len(thought) == 0 {
 		return mcp.NewToolResultError("thought parameter is required"), nil

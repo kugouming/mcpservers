@@ -49,7 +49,7 @@ func ListIndicesTool(s *server.MCPServer) {
 		),
 	)
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		indices, err := client.ListIndices(request.Params.Arguments["indexPattern"].(string))
+		indices, err := client.ListIndices(request.GetArguments()["indexPattern"].(string))
 		if err != nil {
 			return mcp.NewToolResultErrorFromErr("list_indices tool failed", err), nil
 		}
@@ -70,7 +70,7 @@ func GetMappingTool(s *server.MCPServer) {
 		),
 	)
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		index := request.Params.Arguments["index"].(string)
+		index := request.GetArguments()["index"].(string)
 		mappings, err := client.GetMapping(index)
 		if err != nil {
 			return mcp.NewToolResultErrorFromErr("get_mappings tool failed", err), nil
@@ -108,8 +108,8 @@ func SearchTool(s *server.MCPServer) {
 	)
 
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		index := request.Params.Arguments["index"].(string)
-		query := request.Params.Arguments["query"].(map[string]any)
+		index := request.GetArguments()["index"].(string)
+		query := request.GetArguments()["query"].(map[string]any)
 		hits, err := client.Search(index, query)
 		if err != nil {
 			return mcp.NewToolResultErrorFromErr("search tool failed", err), nil
@@ -141,7 +141,7 @@ func GetShardsTool(s *server.MCPServer) {
 	)
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		index := ""
-		if indexName, has := request.Params.Arguments["index"]; has {
+		if indexName, has := request.GetArguments()["index"]; has {
 			index = indexName.(string)
 		}
 		shards, err := client.GetShards(index)
