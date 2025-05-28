@@ -5,7 +5,7 @@ import (
 
 	"github.com/kugouming/mcpservers/tools/elasticsearch"
 	"github.com/kugouming/mcpservers/tools/httprequest"
-	"github.com/kugouming/mcpservers/tools/think"
+	"github.com/kugouming/mcpservers/tools/thinkplan"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -32,7 +32,8 @@ func NewMCPServer() *MCPServer {
 func (s *MCPServer) WithTools() *MCPServer {
 	httprequest.RegisterTool(s.server)
 	elasticsearch.RegisterTool(s.server)
-	think.RegisterTool(s.server)
+	// think.RegisterTool(s.server)
+	thinkplan.RegisterTool(s.server)
 
 	return s
 }
