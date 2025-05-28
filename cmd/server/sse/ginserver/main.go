@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kugouming/mcpservers/tools/elasticsearch"
 	"github.com/kugouming/mcpservers/tools/httprequest"
+	"github.com/kugouming/mcpservers/tools/thinkplan"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cast"
@@ -284,6 +285,7 @@ func main() {
 
 	httprequest.RegisterTool(s.server)
 	elasticsearch.RegisterTool(s.server)
+	thinkplan.RegisterTool(s.server)
 
 	// Start the SSE server with GIN
 	r := gin.Default()
