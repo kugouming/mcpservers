@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -15,6 +16,7 @@ var client IClient
 // RegisterTool 注册HTTP请求工具
 func RegisterTool(s *server.MCPServer) {
 	initClient()
+	InitClient(s)
 	ListIndicesTool(s)
 	GetMappingTool(s)
 	SearchTool(s)
@@ -22,8 +24,13 @@ func RegisterTool(s *server.MCPServer) {
 }
 
 func initClient() {
+	url := os.Getenv("ES_URL")
+	if url == "" {
+		return
+	}
+
 	config := &Config{
-		URL:       os.Getenv("ES_URL"),
+		URL:       url,
 		APIKey:    os.Getenv("ES_API_KEY"),
 		Username:  os.Getenv("ES_USERNAME"),
 		Password:  os.Getenv("ES_PASSWORD"),
@@ -38,6 +45,66 @@ func initClient() {
 	}
 }
 
+func loadESConfigs() map[string]*Config {
+	return map[string]*Config{
+		"dataservice": {
+			URL:       "http://es.platform.xesv5.com",
+			APIKey:    "",
+			Username:  "",
+			Password:  "",
+			AuthToken: "",
+		},
+		"logservice": {
+			URL:       "http://es-gw-tck3-cm.tal.com:80",
+			APIKey:    "",
+			Username:  "",
+			Password:  "",
+			AuthToken: "dl93YW5nbWluZzY6TWluZ3ppMTIxNEBA",
+		},
+	}
+}
+
+func loadESConfigByName(esname string) (*Config, error) {
+	configs := loadESConfigs()
+
+	return configs[esname], nil
+}
+
+func getESGroups() string {
+	groups := []string{}
+	for k := range loadESConfigs() {
+		groups = append(groups, k)
+	}
+	return strings.Join(groups, ", ")
+}
+
+func InitClient(s *server.MCPServer) {
+	tool := mcp.NewTool("es_init",
+		mcp.WithDescription(`Loading config of Elasticsearch by confName`),
+		mcp.WithString("confName",
+			mcp.Required(),
+			mcp.MinLength(1),
+			mcp.Description("confName of Elasticsearch config"),
+		),
+	)
+	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		cname := request.GetArguments()["confName"].(string)
+		config, err := loadESConfigByName(cname)
+		if err != nil {
+			return mcp.NewToolResultErrorFromErr(fmt.Sprintf("config %s is not found, please use: %s\n err: ", cname, getESGroups()), err), nil
+		}
+
+		client, err = NewESClient(config)
+		if err != nil {
+			return mcp.NewToolResultErrorFromErr("create client failed", err), nil
+		}
+
+		return mcp.NewToolResultText(fmt.Sprintf("ES config name %s init success.\n\nConfig:\n %s", cname, mapToText(config))), nil
+	}
+
+	s.AddTool(tool, handler)
+}
+
 // ListIndicesTool 用于列出所有可用的 Elasticsearch 索引
 func ListIndicesTool(s *server.MCPServer) {
 	tool := mcp.NewTool("list_indices",
@@ -49,6 +116,10 @@ func ListIndicesTool(s *server.MCPServer) {
 		),
 	)
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if client == nil {
+			return mcp.NewToolResultErrorFromErr("client is not initialized", nil), nil
+		}
+
 		indices, err := client.ListIndices(request.GetArguments()["indexPattern"].(string))
 		if err != nil {
 			return mcp.NewToolResultErrorFromErr("list_indices tool failed", err), nil
@@ -70,6 +141,10 @@ func GetMappingTool(s *server.MCPServer) {
 		),
 	)
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if client == nil {
+			return mcp.NewToolResultErrorFromErr("client is not initialized", nil), nil
+		}
+
 		index := request.GetArguments()["index"].(string)
 		mappings, err := client.GetMapping(index)
 		if err != nil {
@@ -108,6 +183,10 @@ func SearchTool(s *server.MCPServer) {
 	)
 
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if client == nil {
+			return mcp.NewToolResultErrorFromErr("client is not initialized", nil), nil
+		}
+
 		index := request.GetArguments()["index"].(string)
 		query := request.GetArguments()["query"].(map[string]any)
 		hits, err := client.Search(index, query)
@@ -140,6 +219,10 @@ func GetShardsTool(s *server.MCPServer) {
 		),
 	)
 	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if client == nil {
+			return mcp.NewToolResultErrorFromErr("client is not initialized", nil), nil
+		}
+
 		index := ""
 		if indexName, has := request.GetArguments()["index"]; has {
 			index = indexName.(string)
