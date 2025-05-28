@@ -6,7 +6,8 @@ LDFLAGS=-w -s
 # 目录相关变量
 WORK_DIR=$(shell pwd)
 CLIENT_DIR=cmd/client
-OUTPUT_DIR=output/client
+OUTPUT_DIR=output
+CLIENT_OUTPUT_DIR=output/client
 SSE_DIR=cmd/server/sse
 SSE_OUTPUT_DIR=output/sse
 
@@ -18,17 +19,26 @@ SSE_TARGETS := $(addprefix sse_,$(SSE_CMDS))
 # 默认目标
 .PHONY: all
 all: $(CMDS) $(SSE_TARGETS)
-	@tree ./output
+	@echo "Sync config..."
+	@cp -r ./config $(OUTPUT_DIR)/
+	@echo ""
+	@echo "Build done."
+	@echo ""
+	@echo "Compile output:"
+	@echo ""
+	@echo "================================"
+	@echo ""
+	@tree ./$(OUTPUT_DIR)
 
 # 创建输出目录
-$(OUTPUT_DIR) $(SSE_OUTPUT_DIR):
+$(CLIENT_OUTPUT_DIR) $(SSE_OUTPUT_DIR):
 	@mkdir -p $@
 
 # 为每个 cmd 创建编译目标
 .PHONY: $(CMDS)
-$(CMDS): $(OUTPUT_DIR)
+$(CMDS): $(CLIENT_OUTPUT_DIR)
 	@echo "Building $@..."
-	@cd $(CLIENT_DIR)/$@ && $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o ../../../$(OUTPUT_DIR)/$@
+	@cd $(CLIENT_DIR)/$@ && $(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o ../../../$(CLIENT_OUTPUT_DIR)/$@
 
 # 为每个 sse cmd 创建编译目标
 .PHONY: $(SSE_TARGETS)
@@ -43,7 +53,7 @@ list:
 	@echo "Available commands to build:"
 	@echo "Standard commands:"
 	@for cmd in $(CMDS); do \
-		echo "  $(WORK_DIR)/$(OUTPUT_DIR)/$$cmd"; \
+		echo "  $(WORK_DIR)/$(CLIENT_OUTPUT_DIR)/$$cmd"; \
 	done
 	@echo "SSE commands:"
 	@for cmd in $(SSE_CMDS); do \
@@ -58,7 +68,7 @@ config:
 	@# 输出标准命令配置
 	@for cmd in $(CMDS); do \
 		echo "    \"$$cmd\": {"; \
-		echo "      \"command\": \"$(WORK_DIR)/$(OUTPUT_DIR)/$$cmd\","; \
+		echo "      \"command\": \"$(WORK_DIR)/$(CLIENT_OUTPUT_DIR)/$$cmd\","; \
 		echo "      \"args\": [],"; \
 		echo "      \"env\": {}"; \
 		if [ "$$cmd" != "$$(echo $(CMDS) | rev | cut -d' ' -f1 | rev)" ] || [ -n "$(SSE_CMDS)" ]; then \
@@ -86,7 +96,7 @@ config:
 .PHONY: clean
 clean:
 	@echo "Cleaning..."
-	@rm -rf $(OUTPUT_DIR) $(SSE_OUTPUT_DIR)
+	@rm -rf $(OUTPUT_DIR)
 
 # 帮助信息
 .PHONY: help
