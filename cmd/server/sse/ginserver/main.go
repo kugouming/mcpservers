@@ -291,17 +291,15 @@ func main() {
 	// 添加日志中间件
 	r.Use(LogMiddleware())
 
-	sseServer := server.NewSSEServer(s.server)
+	sseServer := NewSSEServer(s.server)
 
-	// 将 SSESever 的 SSE 端点和处理函数集成到 GIN 路由中
-	r.GET(sseServer.CompleteSsePath(), func(c *gin.Context) {
-		sseServer.ServeHTTP(c.Writer, c.Request)
-	})
+	// 方法一
+	r.GET(sseServer.SsePath(), sseServer.HandleSSE)
+	r.POST(sseServer.MessagePath(), sseServer.HandleSSE)
 
-	// 将 SSESever 的消息端点和处理函数集成到 GIN 路由中
-	r.POST(sseServer.CompleteMessagePath(), func(c *gin.Context) {
-		sseServer.ServeHTTP(c.Writer, c.Request)
-	})
+	// 方法二
+	r.GET(sseServer.SsePath(), sseServer.HandleSSE2)
+	r.POST(sseServer.MessagePath(), sseServer.HandleSSE2)
 
 	// 启动 GIN 服务器
 	if err := r.Run(":9080"); err != nil {

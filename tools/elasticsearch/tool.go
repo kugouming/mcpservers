@@ -79,8 +79,8 @@ func GetMappingTool(s *server.MCPServer) {
 		var result string
 		if len(mappings) == 0 {
 			result = fmt.Sprintf("No mappings found for index %s", index)
-		} else if _, has := mappings[index]; has {
-			result = fmt.Sprintf("Mappings for index %s: \n%s", index, mapToText(mappings["mappings"]))
+		} else if mapping, has := mappings[index]; has {
+			result = fmt.Sprintf("Mappings for index %s: \n%s", index, mapToText(mapping.(map[string]any)["mappings"]))
 		} else {
 			for k, v := range mappings {
 				if vv, ok := v.(map[string]any); ok {
