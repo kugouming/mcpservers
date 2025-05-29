@@ -7,6 +7,7 @@ import (
 	"github.com/kugouming/mcpservers/tools/httprequest"
 	"github.com/kugouming/mcpservers/tools/switchhosts"
 	"github.com/kugouming/mcpservers/tools/thinkplan"
+	"github.com/kugouming/mcpservers/tools/yapi"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -36,6 +37,7 @@ func (s *MCPServer) WithTools() *MCPServer {
 	// think.RegisterTool(s.server)
 	thinkplan.RegisterTool(s.server)
 	switchhosts.RegisterTool(s.server)
+	yapi.RegisterTool(s.server)
 
 	return s
 }

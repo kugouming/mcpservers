@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -35,4 +37,17 @@ func HttpRequest(ctx context.Context, method, url string, headers map[string]str
 	log.Printf("Code: %d Body: %s\n", resp.StatusCode, string(responseBody))
 
 	return resp.StatusCode, responseBody, nil
+}
+
+// GetConfigDir 获取配置文件目录
+func GetConfigDir(toolName string) string {
+	exePath, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	dirList := []string{filepath.Dir(filepath.Dir(exePath)), "config"}
+	if toolName != "" {
+		dirList = append(dirList, toolName)
+	}
+	return filepath.Join(dirList...)
 }
