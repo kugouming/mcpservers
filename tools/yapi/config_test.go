@@ -15,13 +15,6 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(t, "", config.Token)
 	assert.Equal(t, 30, config.Timeout)
 	assert.Equal(t, 3, config.RetryCount)
-	assert.Equal(t, true, config.EnableCache)
-	assert.Equal(t, 300, config.CacheTTL)
-	assert.Equal(t, 1000, config.CacheMaxSize)
-	assert.Equal(t, "info", config.LogLevel)
-	assert.Equal(t, "text", config.LogFormat)
-	assert.Equal(t, false, config.EnableMetrics)
-	assert.Equal(t, []string{}, config.TrustedHosts)
 }
 
 func TestConfigManager_LoadConfig(t *testing.T) {
@@ -44,7 +37,6 @@ func TestConfigManager_LoadConfig(t *testing.T) {
 	t.Run("通过环境变量配置", func(t *testing.T) {
 		os.Setenv("YAPI_BASE_URL", "http://test-env.com")
 		os.Setenv("YAPI_TOKEN", "test_env_token")
-		os.Setenv("YAPI_TIMEOUT", "60")
 
 		cm := NewConfigManager()
 		err := cm.LoadConfig()
@@ -77,27 +69,19 @@ func TestConfigManager_ValidateConfig(t *testing.T) {
 		{
 			name: "有效配置",
 			config: &Config{
-				BaseURL:      "http://valid.com",
-				Token:        "valid_token",
-				Timeout:      30,
-				RetryCount:   3,
-				CacheTTL:     300,
-				CacheMaxSize: 1000,
-				LogLevel:     "info",
-				LogFormat:    "text",
+				BaseURL:    "http://valid.com",
+				Token:      "valid_token",
+				Timeout:    30,
+				RetryCount: 3,
 			},
 			wantErr: false,
 		},
 		{
 			name: "缺少BaseURL",
 			config: &Config{
-				Token:        "valid_token",
-				Timeout:      30,
-				RetryCount:   3,
-				CacheTTL:     300,
-				CacheMaxSize: 1000,
-				LogLevel:     "info",
-				LogFormat:    "text",
+				Token:      "valid_token",
+				Timeout:    30,
+				RetryCount: 3,
 			},
 			wantErr: true,
 			errMsg:  "base_url 配置项不能为空",
@@ -105,13 +89,9 @@ func TestConfigManager_ValidateConfig(t *testing.T) {
 		{
 			name: "缺少Token",
 			config: &Config{
-				BaseURL:      "http://valid.com",
-				Timeout:      30,
-				RetryCount:   3,
-				CacheTTL:     300,
-				CacheMaxSize: 1000,
-				LogLevel:     "info",
-				LogFormat:    "text",
+				BaseURL:    "http://valid.com",
+				Timeout:    30,
+				RetryCount: 3,
 			},
 			wantErr: true,
 			errMsg:  "token 配置项不能为空",
@@ -119,14 +99,10 @@ func TestConfigManager_ValidateConfig(t *testing.T) {
 		{
 			name: "无效的日志级别",
 			config: &Config{
-				BaseURL:      "http://valid.com",
-				Token:        "valid_token",
-				Timeout:      30,
-				RetryCount:   3,
-				CacheTTL:     300,
-				CacheMaxSize: 1000,
-				LogLevel:     "invalid",
-				LogFormat:    "text",
+				BaseURL:    "http://valid.com",
+				Token:      "valid_token",
+				Timeout:    30,
+				RetryCount: 3,
 			},
 			wantErr: true,
 			errMsg:  "无效的日志级别",
@@ -134,14 +110,10 @@ func TestConfigManager_ValidateConfig(t *testing.T) {
 		{
 			name: "无效的超时时间",
 			config: &Config{
-				BaseURL:      "http://valid.com",
-				Token:        "valid_token",
-				Timeout:      0,
-				RetryCount:   3,
-				CacheTTL:     300,
-				CacheMaxSize: 1000,
-				LogLevel:     "info",
-				LogFormat:    "text",
+				BaseURL:    "http://valid.com",
+				Token:      "valid_token",
+				Timeout:    0,
+				RetryCount: 3,
 			},
 			wantErr: true,
 			errMsg:  "timeout 必须大于 0",

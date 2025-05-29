@@ -286,7 +286,7 @@ func TestMCPIntegration(t *testing.T) {
 
 func TestFormatJSONResponse(t *testing.T) {
 	t.Run("格式化普通对象", func(t *testing.T) {
-		data := map[string]interface{}{
+		data := map[string]any{
 			"name": "测试",
 			"id":   123,
 		}
@@ -295,13 +295,13 @@ func TestFormatJSONResponse(t *testing.T) {
 		assert.Contains(t, result, "测试")
 		assert.Contains(t, result, "123")
 		// 验证JSON格式正确
-		var parsed map[string]interface{}
+		var parsed map[string]any
 		err := json.Unmarshal([]byte(result), &parsed)
 		assert.NoError(t, err)
 	})
 
 	t.Run("格式化空对象", func(t *testing.T) {
-		data := map[string]interface{}{}
+		data := map[string]any{}
 
 		result := FormatJSONResponse(data)
 		assert.Equal(t, "{}", result)

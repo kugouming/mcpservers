@@ -2,6 +2,8 @@ package helper
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -50,4 +52,14 @@ func GetConfigDir(toolName string) string {
 		dirList = append(dirList, toolName)
 	}
 	return filepath.Join(dirList...)
+}
+
+// MarshalIndent 将数据转换为文本格式
+func MarshalIndent(indices any) string {
+	body, err := json.MarshalIndent(indices, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("Failed to marshal indices: %v", err)
+	}
+
+	return string(body)
 }

@@ -1,6 +1,18 @@
 # YAPI 工具配置文件示例
 # 将此文件重命名为 yapi.yaml 并修改相应的配置值
 
+# 配置说明:
+# 1. base_url 和 token 是必需配置项
+# 2. 环境变量优先级高于配置文件，例如:
+#    - YAPI_BASE_URL 会覆盖 base_url
+#    - YAPI_TOKEN 会覆盖 token
+# 3. 支持的配置文件位置:
+#    - ./yapi.yaml (当前目录)
+#    - ../../config/yapi.yaml
+#    - ../../configs/yapi.yaml
+#    - ~/.yapi/yapi.yaml (用户主目录)
+#    - /etc/yapi/yapi.yaml (系统配置) 
+
 # 基本配置 (必需)
 base_url: "http://your-yapi-server.com"  # YAPI 服务器地址
 token: "your_access_token"               # YAPI 项目访问令牌
@@ -8,32 +20,3 @@ token: "your_access_token"               # YAPI 项目访问令牌
 # HTTP 客户端配置
 timeout: 30          # 请求超时时间（秒）
 retry_count: 3       # 重试次数
-enable_cache: true   # 是否启用缓存
-
-# 缓存配置
-cache_ttl: 300       # 缓存存活时间（秒，5分钟）
-cache_max_size: 1000 # 缓存最大条目数
-
-# 日志配置
-log_level: "info"    # 日志级别: debug, info, warn, error
-log_format: "text"   # 日志格式: text, json
-
-# 高级配置
-enable_metrics: false  # 是否启用指标收集
-trusted_hosts:         # 信任的主机列表
-  - "*.example.com"
-  - "localhost"
-  - "127.0.0.1"
-
-# 配置说明:
-# 1. base_url 和 token 是必需配置项
-# 2. 环境变量优先级高于配置文件，例如:
-#    - YAPI_BASE_URL 会覆盖 base_url
-#    - YAPI_TOKEN 会覆盖 token
-#    - YAPI_TIMEOUT 会覆盖 timeout
-# 3. 支持的配置文件位置:
-#    - ./yapi.yaml (当前目录)
-#    - ./config/yapi.yaml
-#    - ./configs/yapi.yaml
-#    - ~/.yapi/yapi.yaml (用户主目录)
-#    - /etc/yapi/yapi.yaml (系统配置) 

@@ -83,9 +83,9 @@ type YapiProject struct {
 
 // YapiResponse YAPI通用响应结构体
 type YapiResponse struct {
-	ErrCode int         `json:"errcode"` // 错误码
-	ErrMsg  string      `json:"errmsg"`  // 错误消息
-	Data    interface{} `json:"data"`    // 数据
+	ErrCode int    `json:"errcode"` // 错误码
+	ErrMsg  string `json:"errmsg"`  // 错误消息
+	Data    any    `json:"data"`    // 数据
 }
 
 // YapiInterfaceListResponse 接口列表响应结构体

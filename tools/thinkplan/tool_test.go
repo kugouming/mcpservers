@@ -15,13 +15,13 @@ func TestThinkPlanHandler(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		arguments   map[string]interface{}
+		arguments   map[string]any
 		expectError bool
 		errorMsg    string
 	}{
 		{
 			name: "成功的思考和规划",
-			arguments: map[string]interface{}{
+			arguments: map[string]any{
 				"thought":       "分析当前问题的核心是什么",
 				"plan":          "1. 收集信息 2. 分析问题 3. 制定解决方案",
 				"action":        "开始收集相关资料和数据",
@@ -31,7 +31,7 @@ func TestThinkPlanHandler(t *testing.T) {
 		},
 		{
 			name: "缺少thought参数",
-			arguments: map[string]interface{}{
+			arguments: map[string]any{
 				"plan":          "制定计划",
 				"action":        "执行行动",
 				"thoughtNumber": "T002",
@@ -41,7 +41,7 @@ func TestThinkPlanHandler(t *testing.T) {
 		},
 		{
 			name: "缺少plan参数",
-			arguments: map[string]interface{}{
+			arguments: map[string]any{
 				"thought":       "思考内容",
 				"action":        "执行行动",
 				"thoughtNumber": "T003",
@@ -51,7 +51,7 @@ func TestThinkPlanHandler(t *testing.T) {
 		},
 		{
 			name: "缺少action参数",
-			arguments: map[string]interface{}{
+			arguments: map[string]any{
 				"thought":       "思考内容",
 				"plan":          "制定计划",
 				"thoughtNumber": "T004",
@@ -61,7 +61,7 @@ func TestThinkPlanHandler(t *testing.T) {
 		},
 		{
 			name: "缺少thoughtNumber参数",
-			arguments: map[string]interface{}{
+			arguments: map[string]any{
 				"thought": "思考内容",
 				"plan":    "制定计划",
 				"action":  "执行行动",
@@ -71,7 +71,7 @@ func TestThinkPlanHandler(t *testing.T) {
 		},
 		{
 			name: "空字符串参数",
-			arguments: map[string]interface{}{
+			arguments: map[string]any{
 				"thought":       "",
 				"plan":          "制定计划",
 				"action":        "执行行动",
@@ -139,7 +139,7 @@ func TestThinkPlanMemoryFunctions(t *testing.T) {
 			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name: "think_and_plan",
-			Arguments: map[string]interface{}{
+			Arguments: map[string]any{
 				"thought":       "第一个思考：分析问题的本质",
 				"plan":          "1. 定义问题 2. 收集数据 3. 分析原因",
 				"action":        "开始定义问题的边界和范围",
@@ -155,7 +155,7 @@ func TestThinkPlanMemoryFunctions(t *testing.T) {
 			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name: "think_and_plan",
-			Arguments: map[string]interface{}{
+			Arguments: map[string]any{
 				"thought":       "第二个思考：基于收集的数据进行深入分析",
 				"plan":          "1. 数据清洗 2. 模式识别 3. 假设验证",
 				"action":        "使用统计工具分析数据模式",
@@ -231,7 +231,7 @@ func BenchmarkThinkPlanHandler(b *testing.B) {
 			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name: "think_and_plan",
-			Arguments: map[string]interface{}{
+			Arguments: map[string]any{
 				"thought":       "性能测试思考",
 				"plan":          "执行性能基准测试",
 				"action":        "运行基准测试并收集结果",
@@ -264,7 +264,7 @@ func TestConcurrentAccess(t *testing.T) {
 					Meta      *mcp.Meta `json:"_meta,omitempty"`
 				}{
 					Name: "think_and_plan",
-					Arguments: map[string]interface{}{
+					Arguments: map[string]any{
 						"thought":       fmt.Sprintf("并发思考 %d", id),
 						"plan":          fmt.Sprintf("并发计划 %d", id),
 						"action":        fmt.Sprintf("并发行动 %d", id),

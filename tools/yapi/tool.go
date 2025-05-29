@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/kugouming/mcpservers/helper"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -21,6 +23,8 @@ func RegisterTool(s *server.MCPServer) {
 
 	// 注册所有工具
 	registerGetInterfacesTool(s)
+	registerGetInterfaceByPathTool(s)
+	registerGetInterfaceByNameTool(s)
 	registerGetInterfaceDetailTool(s)
 	registerGetProjectInfoTool(s)
 }
@@ -65,9 +69,9 @@ func registerGetInterfacesTool(s *server.MCPServer) {
 		}
 
 		// 格式化输出结果
-		var interfaceList []map[string]interface{}
+		var interfaceList []map[string]any
 		for _, iface := range response.Data.List {
-			interfaceList = append(interfaceList, map[string]interface{}{
+			interfaceList = append(interfaceList, map[string]any{
 				"id":     iface.ID,
 				"title":  iface.Title,
 				"path":   iface.Path,
@@ -77,7 +81,7 @@ func registerGetInterfacesTool(s *server.MCPServer) {
 			})
 		}
 
-		result := map[string]interface{}{
+		result := map[string]any{
 			"total":      response.Data.Total,
 			"count":      response.Data.Count,
 			"interfaces": interfaceList,
@@ -85,6 +89,145 @@ func registerGetInterfacesTool(s *server.MCPServer) {
 
 		resultJSON, _ := json.MarshalIndent(result, "", "  ")
 		return mcp.NewToolResultText(string(resultJSON)), nil
+	}
+
+	s.AddTool(tool, handler)
+}
+
+// registerGetInterfaceByPathTool 注册根据接口路径获取接口ID工具
+func registerGetInterfaceByPathTool(s *server.MCPServer) {
+	tool := mcp.NewTool("get_interface_by_path",
+		mcp.WithDescription("根据接口路径获取接口ID，返回包含接口ID、标题、路径、方法等信息的列表"),
+		mcp.WithNumber("project_id",
+			mcp.Required(),
+			mcp.Description("YAPI项目ID，用于指定要获取接口列表的项目"),
+		),
+		mcp.WithString("path",
+			mcp.Required(),
+			mcp.Description("接口路径，用于指定要获取接口的ID"),
+		),
+	)
+
+	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if yapiClient == nil {
+			return mcp.NewToolResultError("YAPI客户端未初始化，请检查环境变量配置"), nil
+		}
+
+		// 获取项目ID参数
+		projectIDFloat, ok := request.GetArguments()["project_id"].(float64)
+		if !ok {
+			return mcp.NewToolResultError("project_id 参数必须是数字"), nil
+		}
+		projectID := int(projectIDFloat)
+		path, ok := request.GetArguments()["path"].(string)
+		if !ok {
+			return mcp.NewToolResultError("path 参数必须是字符串"), nil
+		}
+
+		// 调用YAPI API获取接口列表
+		response, err := yapiClient.GetInterfaces(projectID)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("获取接口列表失败: %s", err.Error())), nil
+		}
+
+		// 格式化输出结果
+		var interfaceItem, interfaceItem2 []map[string]any
+		for _, iface := range response.Data.List {
+			if iface.Path == path {
+				interfaceItem = []map[string]any{
+					{
+						"id":     iface.ID,
+						"title":  iface.Title,
+						"path":   iface.Path,
+						"method": iface.Method,
+						"status": iface.Status,
+						"tag":    iface.Tag,
+					},
+				}
+				break
+			} else if strings.HasSuffix(path, iface.Path) {
+				interfaceItem2 = append(interfaceItem2, map[string]any{
+					"id":     iface.ID,
+					"title":  iface.Title,
+					"path":   iface.Path,
+					"method": iface.Method,
+					"status": iface.Status,
+					"tag":    iface.Tag,
+				})
+			}
+		}
+
+		if len(interfaceItem) == 0 && len(interfaceItem2) > 0 {
+			interfaceItem = interfaceItem2
+		}
+
+		if len(interfaceItem) == 0 {
+			return mcp.NewToolResultError(fmt.Sprintf("接口 %s 未找到", path)), nil
+		}
+
+		return mcp.NewToolResultText(helper.MarshalIndent(interfaceItem)), nil
+	}
+
+	s.AddTool(tool, handler)
+}
+
+// registerGetInterfaceByNameTool 注册根据接口名称获取接口ID工具
+func registerGetInterfaceByNameTool(s *server.MCPServer) {
+	tool := mcp.NewTool("get_interface_by_name",
+		mcp.WithDescription("根据接口名称获取接口ID，返回包含接口ID、标题、路径、方法等信息的列表"),
+		mcp.WithNumber("project_id",
+			mcp.Required(),
+			mcp.Description("YAPI项目ID，用于指定要获取接口列表的项目"),
+		),
+		mcp.WithString("name",
+			mcp.Required(),
+			mcp.Description("接口名称，用于指定要获取接口的ID"),
+		),
+	)
+
+	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if yapiClient == nil {
+			return mcp.NewToolResultError("YAPI客户端未初始化，请检查环境变量配置"), nil
+		}
+
+		// 获取项目ID参数
+		projectIDFloat, ok := request.GetArguments()["project_id"].(float64)
+		if !ok {
+			return mcp.NewToolResultError("project_id 参数必须是数字"), nil
+		}
+		projectID := int(projectIDFloat)
+		name, ok := request.GetArguments()["name"].(string)
+		if !ok {
+			return mcp.NewToolResultError("name 参数必须是字符串"), nil
+		}
+
+		// 调用YAPI API获取接口列表
+		response, err := yapiClient.GetInterfaces(projectID)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("获取接口列表失败: %s", err.Error())), nil
+		}
+
+		// 格式化输出结果
+		var interfaceItem map[string]any
+		for _, iface := range response.Data.List {
+			if iface.Title == name {
+				interfaceItem = map[string]any{
+					"id":     iface.ID,
+					"title":  iface.Title,
+					"path":   iface.Path,
+					"method": iface.Method,
+					"status": iface.Status,
+					"tag":    iface.Tag,
+				}
+				break
+			}
+		}
+
+		if interfaceItem == nil {
+			return mcp.NewToolResultError(fmt.Sprintf("接口名称 %s 未找到", name)), nil
+		}
+
+		return mcp.NewToolResultText(helper.MarshalIndent(interfaceItem)), nil
 	}
 
 	s.AddTool(tool, handler)
@@ -120,7 +263,7 @@ func registerGetInterfaceDetailTool(s *server.MCPServer) {
 
 		// 格式化输出结果
 		detail := response.Data
-		result := map[string]interface{}{
+		result := map[string]any{
 			"id":             detail.ID,
 			"title":          detail.Title,
 			"path":           detail.Path,
@@ -177,7 +320,7 @@ func registerGetProjectInfoTool(s *server.MCPServer) {
 
 		// 格式化输出结果
 		project := response.Data
-		result := map[string]interface{}{
+		result := map[string]any{
 			"id":          project.ID,
 			"name":        project.Name,
 			"description": project.Description,
@@ -198,7 +341,7 @@ func registerGetProjectInfoTool(s *server.MCPServer) {
 }
 
 // FormatJSONResponse 格式化JSON响应，用于美化输出
-func FormatJSONResponse(data interface{}) string {
+func FormatJSONResponse(data any) string {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Sprintf("格式化JSON失败: %v", err)

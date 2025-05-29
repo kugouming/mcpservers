@@ -39,12 +39,12 @@ func TestSwitchhostsHandler(t *testing.T) {
 	// 构造请求
 	request := mcp.CallToolRequest{
 		Params: struct {
-			Name      string      `json:"name"`
-			Arguments interface{} `json:"arguments,omitempty"`
-			Meta      *mcp.Meta   `json:"_meta,omitempty"`
+			Name      string    `json:"name"`
+			Arguments any       `json:"arguments,omitempty"`
+			Meta      *mcp.Meta `json:"_meta,omitempty"`
 		}{
 			Name:      "switchhosts",
-			Arguments: map[string]interface{}{"conf_name": confName},
+			Arguments: map[string]any{"conf_name": confName},
 		},
 	}
 

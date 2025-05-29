@@ -205,8 +205,8 @@ func (s *MCPServer) WithHttpRequestTool() *MCPServer {
 
 		log.Printf("request: [%T: %v]\n", request.GetArguments()["headers"], request.GetArguments()["headers"])
 		// 尝试解析headers参数
-		// headers := make(map[string]interface{})
-		// if h, ok := request.GetArguments()["headers"].(map[string]interface{}); ok {
+		// headers := make(map[string]any)
+		// if h, ok := request.GetArguments()["headers"].(map[string]any); ok {
 		// 	headers = h
 		// }
 		// 尝试解析headers参数

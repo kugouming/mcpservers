@@ -18,7 +18,6 @@ go mod tidy
 ```bash
 export YAPI_BASE_URL="http://your-yapi-server.com"
 export YAPI_TOKEN="your_access_token"
-export YAPI_TIMEOUT="30"
 ```
 
 ### 方式二：配置文件
@@ -126,6 +125,8 @@ func main() {
 | 工具名称 | 功能描述 | 参数 | 示例 |
 |---------|---------|------|------|
 | `get_interfaces` | 获取项目接口列表 | `project_id` | `{"project_id": 123}` |
+| `get_interface_by_path` | 通过接口路径获取接口 | `project_id` `path` | `{"project_id": 123, "path": "/v1/product/info"}` |
+| `get_interface_by_name` | 通过接口名称获取接口 | `project_id` `name` | `{"project_id": 123, "name": "商品信息"}` |
 | `get_interface_detail` | 获取接口详情 | `id` | `{"id": 1001}` |
 | `get_project_info` | 获取项目信息 | `project_id` | `{"project_id": 123}` |
 
@@ -142,15 +143,14 @@ func main() {
 |-------|----------|--------|------|
 | base_url | `YAPI_BASE_URL` | - | YAPI 服务器地址 |
 | token | `YAPI_TOKEN` | - | 访问令牌 |
-| timeout | `YAPI_TIMEOUT` | 30 | 请求超时（秒） |
 | retry_count | `YAPI_RETRY_COUNT` | 3 | 重试次数 |
 | log_level | `YAPI_LOG_LEVEL` | info | 日志级别 |
 
 ### 配置文件位置
 系统按以下顺序查找 `yapi.yaml`：
 1. `./yapi.yaml` (当前目录)
-2. `./config/yapi.yaml`
-3. `./configs/yapi.yaml` 
+2. `../../config/yapi.yaml`
+3. `../../configs/yapi.yaml` 
 4. `~/.yapi/yapi.yaml` (用户目录)
 5. `/etc/yapi/yapi.yaml` (系统目录)
 
@@ -226,4 +226,4 @@ go run tools/yapi/example/main.go
 - 📖 [详细文档](README.md)
 - 🧪 [测试示例](tool_test.go)
 - 💡 [示例程序](example/main.go)
-- ⚙️ [配置示例](yapi.example.yaml) 
+- ⚙️ [配置示例](../../config/yapi/yapi.example.yaml) 
