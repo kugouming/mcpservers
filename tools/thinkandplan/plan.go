@@ -87,12 +87,12 @@ func AddStep(stepDesc, taskTitle string) (string, error) {
 			return "No tasks found in the plan. Create a task first using think_and_plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	stepsPattern := regexp.MustCompile(`### Steps\n\n([\s\S]*?)(?=\n### |$)`)
+	stepsPattern := regexp.MustCompile(`### Steps\n\n([\s\S]*)`)
 	stepsMatch := stepsPattern.FindString(taskMatch)
 	if stepsMatch == "" {
 		// 没有 Steps 段，直接加
@@ -123,12 +123,12 @@ func MarkStepComplete(stepText, taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	stepPattern := regexp.MustCompile(`\[ \] ` + regexp.QuoteMeta(stepText))
+	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*)`)
 	if !stepPattern.MatchString(taskMatch) {
 		return fmt.Sprintf("Step '%s' not found in task '%s'.", stepText, taskTitle), nil
 	}
@@ -151,7 +151,7 @@ func ReviewPlan(taskTitle string) (string, error) {
 	if taskTitle == "" {
 		return content, nil
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
@@ -173,12 +173,12 @@ func AddIssue(issueDesc, stepText, taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*?)(?=\n\[.?\] |\n### |\n## |$)`)
+	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*)`)
 	stepMatch := stepPattern.FindString(taskMatch)
 	if stepMatch == "" {
 		return fmt.Sprintf("Step '%s' not found in task '%s'.", stepText, taskTitle), nil
@@ -207,12 +207,12 @@ func ResolveIssue(stepText, resolution, taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*?)(?=\n\[.?\] |\n### |\n## |$)`)
+	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*)`)
 	stepMatch := stepPattern.FindString(taskMatch)
 	if stepMatch == "" {
 		return fmt.Sprintf("Step '%s' not found in task '%s'.", stepText, taskTitle), nil
@@ -244,12 +244,12 @@ func UpdatePlanningNotes(notes, taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	notesPattern := regexp.MustCompile(`### Planning Notes\n\n([\s\S]*?)(?=\n### |$)`)
+	notesPattern := regexp.MustCompile(`### Planning Notes\n\n([\s\S]*)`)
 	notesMatch := notesPattern.FindString(taskMatch)
 	if notesMatch == "" {
 		updatedTask := taskMatch + "\n### Planning Notes\n\n" + notes + "\n"
@@ -279,13 +279,13 @@ func CheckTaskCompletion(taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	incompleteSteps := regexp.MustCompile(`\[ \] (.+?)(?=\n|$)`).FindAllStringSubmatch(taskMatch, -1)
-	completedSteps := regexp.MustCompile(`\[✅\] (.+?)(?=\n|$)`).FindAllStringSubmatch(taskMatch, -1)
+	incompleteSteps := regexp.MustCompile(`\[ \] (.+)`).FindAllStringSubmatch(taskMatch, -1)
+	completedSteps := regexp.MustCompile(`\[✅\] (.+)`).FindAllStringSubmatch(taskMatch, -1)
 	total := len(incompleteSteps) + len(completedSteps)
 	if total == 0 {
 		return fmt.Sprintf("No steps found for task '%s'.", taskTitle), nil
@@ -318,12 +318,12 @@ func DeleteStep(stepText, taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
-	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `.*?)(?=\n\[.?\] |\n### |\n## |$)`)
+	stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `.*)`)
 	stepMatch := stepPattern.FindString(taskMatch)
 	if stepMatch == "" {
 		return fmt.Sprintf("Step '%s' not found in task '%s'.", stepText, taskTitle), nil
@@ -347,7 +347,7 @@ func DeleteTask(taskTitle string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
@@ -379,13 +379,13 @@ func SetPriority(priority, stepText, taskTitle string) (string, error) {
 			return "No tasks found in the plan.", nil
 		}
 	}
-	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `(?: \[[🔴🟠🟢]\])?\n([\s\S]+?)(?=\n## |$)`)
+	taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `(?: \[🔴🟠🟢]\])?\n([\s\S]+)`)
 	taskMatch := taskPattern.FindString(content)
 	if taskMatch == "" {
 		return fmt.Sprintf("Task '%s' not found in the plan.", taskTitle), nil
 	}
 	if stepText != "" {
-		stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*?)(?=\n\[.?\] |\n### |\n## |$)`)
+		stepPattern := regexp.MustCompile(`(\[.?\] ` + regexp.QuoteMeta(stepText) + `)([\s\S]*)`)
 		stepMatch := stepPattern.FindString(taskMatch)
 		if stepMatch == "" {
 			return fmt.Sprintf("Step '%s' not found in task '%s'.", stepText, taskTitle), nil
@@ -399,10 +399,10 @@ func SetPriority(priority, stepText, taskTitle string) (string, error) {
 		}
 		return fmt.Sprintf("Set priority '%s' for step '%s' in task '%s'.", priority, stepText, taskTitle), nil
 	} else {
-		taskHeading := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `( \[[🔴🟠🟢]\])?\n`)
+		taskHeading := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `( \[🔴🟠🟢]\])?\n`)
 		taskHeadingMatch := taskHeading.FindString(taskMatch)
 		if taskHeadingMatch != "" {
-			cleanHeading := regexp.MustCompile(` \[[🔴🟠🟢]\]`).ReplaceAllString(taskHeadingMatch, "")
+			cleanHeading := regexp.MustCompile(` \[🔴🟠🟢\]`).ReplaceAllString(taskHeadingMatch, "")
 			prioritizedHeading := strings.Replace(cleanHeading, "\n", " ["+valid[priority]+"]\n", 1)
 			updatedTask := strings.Replace(taskMatch, taskHeadingMatch, prioritizedHeading, 1)
 			content = strings.Replace(content, taskMatch, updatedTask, 1)
@@ -421,4 +421,24 @@ func getLastTaskTitle(content string) string {
 		return ""
 	}
 	return taskSections[len(taskSections)-1][1]
+}
+
+// Plan 资源获取
+func GetPlanResource(taskTitle string) (string, error) {
+	if err := ensurePlanFile(); err != nil {
+		return "", err
+	}
+	content, err := readPlanFile()
+	if err != nil {
+		return "", err
+	}
+	if taskTitle != "" && taskTitle != "all" {
+		taskPattern := regexp.MustCompile(`## ` + regexp.QuoteMeta(taskTitle) + `\n([\s\S]+)`)
+		taskMatch := taskPattern.FindString(content)
+		if taskMatch == "" {
+			return "Task '" + taskTitle + "' not found in the plan.", nil
+		}
+		return "# Task: " + taskTitle + "\n\n" + taskMatch, nil
+	}
+	return content, nil
 }

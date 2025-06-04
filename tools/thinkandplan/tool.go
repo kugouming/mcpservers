@@ -21,6 +21,7 @@ func RegisterTool(s *server.MCPServer) {
 	s.AddTool(deleteStepTool, deleteStepHandler)
 	s.AddTool(deleteTaskTool, deleteTaskHandler)
 	s.AddTool(setPriorityTool, setPriorityHandler)
+	s.AddResource(getPlanResource, getPlanHandler)
 }
 
 var thinkAndPlanTool = mcp.NewTool("think_and_plan",
@@ -222,4 +223,25 @@ func setPriorityHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultText(msg), nil
+}
+
+// 资源 handler
+var getPlanResource = mcp.NewResource("plan://{task_title}", "Get the plan contents as a resource.")
+
+func getPlanHandler(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	taskTitle := ""
+	if v, ok := req.Params.Arguments["task_title"]; ok {
+		taskTitle = cast.ToString(v)
+	}
+	plan, err := GetPlanResource(taskTitle)
+	if err != nil {
+		return nil, err
+	}
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      "plan://" + taskTitle,
+			MIMEType: "text/markdown",
+			Text:     plan,
+		},
+	}, nil
 }
