@@ -5,6 +5,7 @@ import (
 
 	"github.com/kugouming/mcpservers/tools/elasticsearch"
 	"github.com/kugouming/mcpservers/tools/httprequest"
+	"github.com/kugouming/mcpservers/tools/prompt"
 	"github.com/kugouming/mcpservers/tools/switchhosts"
 	"github.com/kugouming/mcpservers/tools/thinkplan"
 	"github.com/kugouming/mcpservers/tools/yapi"
@@ -38,6 +39,7 @@ func (s *MCPServer) WithTools() *MCPServer {
 	thinkplan.RegisterTool(s.server)
 	switchhosts.RegisterTool(s.server)
 	yapi.RegisterTool(s.server)
+	prompt.RegisterTool(s.server)
 
 	return s
 }
